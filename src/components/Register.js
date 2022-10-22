@@ -3,6 +3,7 @@ import { Box } from "@mui/system";
 import axios from "axios";
 import { useSnackbar } from "notistack";
 import React, { useState } from "react";
+import { useHistory,Link } from "react-router-dom";
 import { config } from "../App";
 import Footer from "./Footer";
 import Header from "./Header";
@@ -16,6 +17,7 @@ const Register = () => {
     confirmPassword:""
   })
   const[isLoading,setLoading]=useState(false)
+  const{history}=useHistory()
   const onInputChange=(e)=>{
     const[key,value]=[e.target.name,e.target.value]
     setformdata((FormData)=>({...FormData,[key]:value}))
@@ -48,13 +50,14 @@ const Register = () => {
       setLoading(true)
       const response= axios.post(`${config.endpoint}/auth/register`,{username:formData.username,password:formData.password})
       .then((response)=>{
-        
+        setLoading(false);
         setformdata({
           username:"",
           password:"",
           confirmPassword:""
         })
         enqueueSnackbar("Registered Successfully",{variant:"success"})
+        history.push("/login")
       })
       .catch((e)=>{
       if(e.response && e.response.status===400){
@@ -63,9 +66,6 @@ const Register = () => {
       else{
         enqueueSnackbar("Something went wrong. Check that the backend is running, reachable and returns valid JSON.",{variant:"error"})
       }
-    })
-    .finally(()=>{
-      setLoading(false)
     })
 
   };
@@ -168,9 +168,9 @@ const Register = () => {
            }
           <p className="secondary-action">
             Already have an account?{" "}
-             <a className="link" href="#">
+             <Link className="link" to="/login">
               Login here
-             </a>
+             </Link>
           </p>
         </Stack>
       </Box>
