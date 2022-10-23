@@ -17,7 +17,7 @@ const Register = () => {
     confirmPassword:""
   })
   const[isLoading,setLoading]=useState(false)
-  const{history}=useHistory()
+  let history = useHistory()
   const onInputChange=(e)=>{
     const[key,value]=[e.target.name,e.target.value]
     setformdata((FormData)=>({...FormData,[key]:value}))

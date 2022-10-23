@@ -1,13 +1,13 @@
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { Avatar, Box,Button, Stack } from "@mui/material";
 import React from "react";
-import { useHistory,useState} from "react-router-dom";
+import { useHistory,useState,useEffect} from "react-router-dom";
 import { Link } from "react-router-dom";
 import { createTheme} from '@mui/material/styles';
 import "./Header.css";
 
 const Header = ({ children, hasHiddenAuthButtons }) => {
-  const{history}=useHistory();
+  let history=useHistory();
   // const theme=createTheme({
   //   palette:{
   //     crio:{
@@ -54,6 +54,7 @@ const Header = ({ children, hasHiddenAuthButtons }) => {
         
     //   </Box>
     // );
+   
     if(hasHiddenAuthButtons){
       return (
           <Box className="header">
@@ -62,6 +63,7 @@ const Header = ({ children, hasHiddenAuthButtons }) => {
                 <img src="logo_light.svg" alt="QKart-icon"></img>
               </Link>  
             </Box>
+            {children}
           <Button
           className="explore-button"
           startIcon={<ArrowBackIcon />}
@@ -78,12 +80,16 @@ const Header = ({ children, hasHiddenAuthButtons }) => {
                 <img src="logo_light.svg" alt="QKart-icon"></img>
               </Link>  
             </Box>
+            {children}
             <Stack direction="row" spacing={1} align-item="center">
              {localStorage.getItem("username")?(
               <>
                <Avatar src="avatar.png" alt={localStorage.getItem("username")||"profile"}/>
-               <p className="usename-text">{localStorage.getItem("usename")}</p>
-               <Button onClick={()=>{history.push("/login")}}>
+               <p className="username-text">{localStorage.getItem("username")}</p>
+               <Button onClick={()=>{localStorage.removeItem("username")
+               localStorage.removeItem("token")
+               localStorage.removeItem("balance")
+                history.push("/")}}>
                  Logout
                </Button>
               </>
@@ -92,7 +98,7 @@ const Header = ({ children, hasHiddenAuthButtons }) => {
                <Button color="primary" onClick={()=>{history.push("/login")}}>
                  Login
                </Button>
-               <Button variant="contained" color="primary" onClick={()=>{history.push("/register")}}>
+               <Button variant="contained" color="primary" onClick={()=>history.push("/register")}>
                  Register
                </Button>
                </>

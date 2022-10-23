@@ -16,7 +16,7 @@ const Login = () => {
     password:""
   })
   const[isLoading,setLoading]=useState(false);
-  const{history}=useHistory()
+  let history=useHistory()
   const onInputChange=(e)=>{
     const[key,value]=[e.target.name,e.target.value]
     setformdata((FormData)=>({...FormData,[key]:value}))
@@ -49,7 +49,7 @@ const Login = () => {
   const login = async (formData) => {
     if(!validateInput(formData))return;
       setLoading(true)
-       const response=axios.post(`${config.endpoint}/auth/login`,{username:formData.username,password:formData.password})
+       const response=axios.post(`${config.endpoint}/auth/login`,formData)
       .then((response)=>{
         setLoading(false)
         persistLogin(response.data.token,response.data.username,response.data.balance);
@@ -130,6 +130,7 @@ const Login = () => {
       <Header hasHiddenAuthButtons />
       <Box className="content">
         <Stack spacing={2} className="form">
+          <h2 className="title">Login</h2>
         <TextField
             id="username"
             label="Username"
@@ -158,7 +159,7 @@ const Login = () => {
               <CircularProgress/>
             ):(
               <Button onClick={()=>login(formData)} className="button" variant="contained">
-            Login
+            Login to Qkart
            </Button>
             )
            }
