@@ -1,13 +1,15 @@
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { Avatar, Box,Button, Stack } from "@mui/material";
 import React from "react";
-import { useHistory,useState,useEffect} from "react-router-dom";
+import { useHistory,useState,useEffect,withRouter,useSnackbar} from "react-router-dom";
 import { Link } from "react-router-dom";
 import { createTheme} from '@mui/material/styles';
 import "./Header.css";
 
 const Header = ({ children, hasHiddenAuthButtons }) => {
   let history=useHistory();
+  
+  
   // const theme=createTheme({
   //   palette:{
   //     crio:{
@@ -89,7 +91,8 @@ const Header = ({ children, hasHiddenAuthButtons }) => {
                <Button onClick={()=>{localStorage.removeItem("username")
                localStorage.removeItem("token")
                localStorage.removeItem("balance")
-                history.push("/")}}>
+                history.push("/")
+                }}>
                  Logout
                </Button>
               </>
@@ -109,4 +112,4 @@ const Header = ({ children, hasHiddenAuthButtons }) => {
     
 };
 
-export default Header;
+export default withRouter(Header);

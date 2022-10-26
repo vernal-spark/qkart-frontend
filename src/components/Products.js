@@ -33,7 +33,9 @@ const Products = () => {
   const [searchKey, setSearchKey] = useState("");
   const [debounceTimeout, setDebounceTimeout] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-
+  const handleInputChange=(e)=>{
+    setSearchKey(e.target.value);
+  }
   // TODO: CRIO_TASK_MODULE_PRODUCTS - Fetch products data and store it
   /**
    * Make API call to get the products list and store it to display the products
@@ -71,6 +73,25 @@ const Products = () => {
    *      "message": "Something went wrong. Check the backend console for more details"
    * }
    */
+  // const performAPICall=async()=>{
+  //   try{
+  //     let url = `${config.endpoint}/products`;
+  //    const res=await fetch(url);
+  //    console.log(res)
+  //    const d=await res.json();
+  //    console.log(d)
+  //    setProducts(d);
+  //    setIsLoading(false);
+  //   }catch(e){
+  //     setIsLoading(false);
+  //     if(e.response && e.response.status===400){
+  //       enqueueSnackbar(e.response.data.message,{variant:"error"})
+  //     }
+  //     else{
+  //           enqueueSnackbar("Something went wrong. Check that the backend is running, reachable and returns valid JSON.",{variant:"error"})
+  //         }
+  //   }
+  // }
 
   const performAPICall = async () => {
     
@@ -78,7 +99,7 @@ const Products = () => {
       .then((response) => {
         setIsLoading(false);
         console.log(response.data);
-        return response.data;
+        setProducts(response.data);
       })
       .catch((e) => {
         setIsLoading(false);
@@ -92,10 +113,7 @@ const Products = () => {
   };
   useEffect(() => {
     setIsLoading(true);
-    (async function(){
-      let prod=await performAPICall();
-      setProducts(prod);
-    })();
+    performAPICall();
     
   }, []);
 
@@ -113,6 +131,29 @@ const Products = () => {
    * API endpoint - "GET /products/search?value=<search-query>"
    *
    */
+  // const performSearch=async(text)=>{
+  //   try{
+  //     let url = `${config.endpoint}/products`;
+  //    if (searchKey) {
+  //      url = `${config.endpoint}/products/search?value=${text}`;
+  //    }
+  //    const res=await fetch(url);
+  //    const d=await res.json();
+  //    console.log(d)
+  //    setProducts(d);
+  //    console.log(products)
+  //    setIsLoading(false);
+  //   }catch(e){
+  //     setIsLoading(false);
+  //     if(e.response && e.response.status===400){
+  //       enqueueSnackbar(e.response.data.message,{variant:"error"})
+  //     }
+  //     else{
+  //           enqueueSnackbar("Something went wrong. Check that the backend is running, reachable and returns valid JSON.",{variant:"error"})
+  //         }
+  //   }
+    
+  // }
   const performSearch = async (text) => {
     let url = `${config.endpoint}/products`;
     if (text) {
@@ -123,10 +164,11 @@ const Products = () => {
       .then((response) => {
         setIsLoading(false);
         console.log(response.data);
-       return(response.data);
+       setProducts(response.data);
       })
       .catch((e) => {
         setIsLoading(false);
+        setProducts([])
         if(e.response && e.response.status===400){
           enqueueSnackbar(e.response.data.message,{variant:"error"})
         }
@@ -149,18 +191,17 @@ const Products = () => {
    *    Timer id set for the previous debounce call
    *
    */
-  const debounceSearch = (event, debounceTimeout) => {
-    setSearchKey(event.target.value);
+  const debounceSearch = (debounceTimeout) => {
     clearTimeout(debounceTimeout);
     const newtimerId = setTimeout(() => {
       setIsLoading(true);
-      (async function(){
-        let prod=await performSearch(searchKey);
-        setProducts(prod);
-      })();
+      performSearch(searchKey);
     }, 500);
     setDebounceTimeout(newtimerId);
   };
+  useEffect(()=>{
+    debounceSearch(debounceTimeout);
+  },[searchKey])
 
   return (
     <div>
@@ -170,7 +211,7 @@ const Products = () => {
           className="search-desktop"
           size="small"
           value={searchKey}
-          onChange={(e) => debounceSearch(e, debounceTimeout)}
+          onChange={(e) =>handleInputChange(e)}
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
@@ -187,7 +228,7 @@ const Products = () => {
         size="small"
         fullWidth
         value={searchKey}
-        onChange={(e)=>debounceSearch(e,debounceTimeout)}
+        onChange={(e)=>handleInputChange(e)}
         InputProps={{
           endAdornment: (
             <InputAdornment position="end">
@@ -209,23 +250,23 @@ const Products = () => {
         </Grid>
         {isLoading ? (
           <>Loading Products...</>
-        ) : (
-          (products.length)?(
-          <>
+        ) : (<>
+          {
+          products && products.length?(
             <Grid container item mt={2} mb={2} ml={6} className="product-grid">
-              {products.map((ele) => (
-                <Grid item mt={1} xs={6} md={3} key={ele._id}>
+               {products.map((ele) => (
+                <Grid item xs={12} sm={6} md={4} lg={3} key={ele._id}>
                   <ProductCard product={ele} />
                 </Grid>
               ))}
             </Grid>
-          </>):(
+          ):(
             <Box className="loading">
             <SentimentDissatisfied color="action"/>
             <h4 >No Products Found</h4>
             </Box>
-          )
-        )}
+          )}
+          </>)}
       </Grid>
 
       <Footer />
