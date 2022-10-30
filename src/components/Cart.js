@@ -7,7 +7,7 @@ import {
 import { Button, IconButton, Stack } from "@mui/material";
 import { Box } from "@mui/system";
 import React from "react";
-import { useHistory } from "react-router-dom";
+import { withRouter,useHistory } from "react-router-dom";
 import "./Cart.css";
 
 // Definition of Data Structures used
@@ -48,6 +48,10 @@ import "./Cart.css";
  *
  */
 export const generateCartItemsFrom = (cartData, productsData) => {
+  return cartData.map((item)=>({
+    ...item,
+    ...productsData.find((product)=>(item.productId===product._id))
+  }))
 };
 
 /**
@@ -61,6 +65,11 @@ export const generateCartItemsFrom = (cartData, productsData) => {
  *
  */
 export const getTotalCartValue = (items = []) => {
+  let total=0;
+  items.forEach((ele)=>{
+    total+=ele.qty*ele.cost
+  })
+  return total;
 };
 
 
@@ -117,10 +126,11 @@ const Cart = ({
   items = [],
   handleQuantity,
 }) => {
-
+  let history=useHistory();
+  const token=localStorage.getItem('token')
   if (!items.length) {
     return (
-      <Box className="cart empty">
+      <Box fullWidth className="cart empty">
         <ShoppingCartOutlined className="empty-cart-icon" />
         <Box color="#aaa" textAlign="center">
           Cart is empty. Add more items to the cart to checkout.
@@ -133,6 +143,44 @@ const Cart = ({
     <>
       <Box className="cart">
         {/* TODO: CRIO_TASK_MODULE_CART - Display view for each cart item with non-zero quantity */}
+        {items.map((ele)=>(
+          <Box display="flex" alignItems="flex-start" padding="1rem">
+          <Box className="image-container">
+              <img
+                  // Add product image
+                  src={ele.image}
+                  // Add product name as alt eext
+                  alt="logo"
+                  width="100%"
+                  height="100%"
+              />
+          </Box>
+          <Box
+              display="flex"
+              flexDirection="column"
+              justifyContent="space-between"
+              height="6rem"
+              paddingX="1rem"
+          >
+              <div>{ele.name}</div>
+              <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+              >
+              <ItemQuantity
+              // Add required props by checking implementation
+              handleAdd={async()=>{handleQuantity(token,items,products,ele.productId,ele.qty+1)}}
+              handleDelete={async()=>{handleQuantity(token,items,products,ele.productId,ele.qty-1)}}
+              value={ele.qty}
+              />
+              <Box padding="0.5rem" fontWeight="700">
+                  ${ele.cost}
+              </Box>
+              </Box>
+          </Box>
+      </Box>
+        ))}
         <Box
           padding="1rem"
           display="flex"
@@ -159,6 +207,7 @@ const Cart = ({
             variant="contained"
             startIcon={<ShoppingCart />}
             className="checkout-btn"
+            onClick={()=>{history.push("/checkout")}}
           >
             Checkout
           </Button>
@@ -168,4 +217,4 @@ const Cart = ({
   );
 };
 
-export default Cart;
+export default withRouter(Cart);

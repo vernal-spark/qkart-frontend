@@ -14,6 +14,7 @@ import Footer from "./Footer";
 import Header from "./Header";
 import "./Products.css";
 import ProductCard from "./ProductCard";
+import Cart, { generateCartItemsFrom } from "./Cart"
 import Tooltip, { tooltipClasses } from "@mui/material/Tooltip";
 // Definition of Data Structures used
 /**
@@ -35,11 +36,14 @@ import Tooltip, { tooltipClasses } from "@mui/material/Tooltip";
  */
 
 const Products = () => {
+  const [items,setItems]=useState([])
   const { enqueueSnackbar } = useSnackbar();
+  const[filteredProducts,setfilteredProducts]=useState([])
   const [products, setProducts] = useState([]);
   const [searchKey, setSearchKey] = useState("");
   const [debounceTimeout, setDebounceTimeout] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const token=localStorage.getItem('token')
   const handleInputChange=(e)=>{
     setSearchKey(e.target.value);
   }
@@ -80,26 +84,6 @@ const Products = () => {
    *      "message": "Something went wrong. Check the backend console for more details"
    * }
    */
-  // const performAPICall=async()=>{
-  //   try{
-  //     let url = `${config.endpoint}/products`;
-  //    const res=await fetch(url);
-  //    console.log(res)
-  //    const d=await res.json();
-  //    console.log(d)
-  //    setProducts(d);
-  //    setIsLoading(false);
-  //   }catch(e){
-  //     setIsLoading(false);
-  //     if(e.response && e.response.status===400){
-  //       enqueueSnackbar(e.response.data.message,{variant:"error"})
-  //     }
-  //     else{
-  //           enqueueSnackbar("Something went wrong. Check that the backend is running, reachable and returns valid JSON.",{variant:"error"})
-  //         }
-  //   }
-  // }
-
   const performAPICall = async () => {
     
     return axios.get(`${config.endpoint}/products`)
@@ -107,6 +91,8 @@ const Products = () => {
         setIsLoading(false);
         console.log(response.data);
         setProducts(response.data);
+        setfilteredProducts(response.data)
+        return response.data;
       })
       .catch((e) => {
         setIsLoading(false);
@@ -118,11 +104,7 @@ const Products = () => {
         }
       })
   };
-  useEffect(() => {
-    setIsLoading(true);
-    performAPICall();
-    
-  }, []);
+  
 
   // TODO: CRIO_TASK_MODULE_PRODUCTS - Implement search logic
   /**
@@ -138,29 +120,6 @@ const Products = () => {
    * API endpoint - "GET /products/search?value=<search-query>"
    *
    */
-  // const performSearch=async(text)=>{
-  //   try{
-  //     let url = `${config.endpoint}/products`;
-  //    if (searchKey) {
-  //      url = `${config.endpoint}/products/search?value=${text}`;
-  //    }
-  //    const res=await fetch(url);
-  //    const d=await res.json();
-  //    console.log(d)
-  //    setProducts(d);
-  //    console.log(products)
-  //    setIsLoading(false);
-  //   }catch(e){
-  //     setIsLoading(false);
-  //     if(e.response && e.response.status===400){
-  //       enqueueSnackbar(e.response.data.message,{variant:"error"})
-  //     }
-  //     else{
-  //           enqueueSnackbar("Something went wrong. Check that the backend is running, reachable and returns valid JSON.",{variant:"error"})
-  //         }
-  //   }
-    
-  // }
   const performSearch = async (text) => {
     let url = `${config.endpoint}/products`;
     if (text) {
@@ -171,17 +130,23 @@ const Products = () => {
       .then((response) => {
         setIsLoading(false);
         console.log(response.data);
-       setProducts(response.data);
+       setfilteredProducts(response.data)
       })
       .catch((e) => {
         setIsLoading(false);
-        setProducts([])
-        if(e.response && e.response.status===400){
+        setfilteredProducts([])
+        if(e.response ){
+          if(e.response.status===404){
+          setfilteredProducts([])
+        }
+        else if(e.response.status===500){
           enqueueSnackbar(e.response.data.message,{variant:"error"})
+          setProducts(products)
         }
         else{
           enqueueSnackbar("Something went wrong. Check that the backend is running, reachable and returns valid JSON.",{variant:"error"})
         }
+      }
       })
       
   };
@@ -206,9 +171,89 @@ const Products = () => {
     }, 500);
     setDebounceTimeout(newtimerId);
   };
+ 
   useEffect(()=>{
     debounceSearch(debounceTimeout);
   },[searchKey])
+
+
+  const fetchCart = async (token) => {
+    if (!token) return;
+    try {
+      // TODO: CRIO_TASK_MODULE_CART - Pass Bearer token inside "Authorization" header to get data from "GET /cart" API and return the response data
+      return axios.get(`${config.endpoint}/cart`,
+      {headers:{'Authorization':`Bearer ${token}`}})
+      .then((response)=>{
+        console.log(response.data)
+        return response.data;
+      })
+    } catch (e) {
+      if (e.response && e.response.status === 400) {
+        enqueueSnackbar(e.response.data.message, { variant: "error" });
+      } else {
+        enqueueSnackbar(
+          "Could not fetch cart details. Check that the backend is running, reachable and returns valid JSON.",
+          {
+            variant: "error",
+          }
+        );
+      }
+      return null;
+    }
+  };
+  useEffect(() => {
+    setIsLoading(true);
+    (async function(){
+    const productsData=await performAPICall();
+    const cartData=await fetchCart(token);
+    if(cartData){
+      const cartDetails= await generateCartItemsFrom(cartData,productsData);
+    setItems(cartDetails)
+    console.log(cartDetails);
+    }
+    })();
+
+    
+  }, []);
+  const IsItemInCart=(items,productId)=>{
+    return items.find((ele)=>
+      ele.productId===productId
+    )
+  }
+  
+  const updateCartItems=(cartData,productsData)=>{
+    const cartItems= generateCartItemsFrom(cartData,productsData);
+    setItems(cartItems);
+  }
+  const addToCart = async (
+    token,
+    items,
+    products,
+    productId,
+    qty,
+    options = { preventDuplicate: false }
+  ) => {
+    if(!token){
+      enqueueSnackbar("Login to add items to cart",{variant:"warning"});
+      return;
+    }
+    if(options.preventDuplicate && IsItemInCart(items,productId)){
+      enqueueSnackbar("Item already in cart. Use the cart sidebar to update quantity or remove item.",{variant:"warning"});
+      return;
+    }
+    try {
+      // TODO: CRIO_TASK_MODULE_CART - Pass Bearer token inside "Authorization" header to get data from "GET /cart" API and return the response data
+      return axios.post(`${config.endpoint}/cart`,
+      {productId,qty},
+      {headers:{'Authorization':`Bearer ${token}`}})
+      .then((response)=>{
+        updateCartItems(response.data,products)
+      })
+    } catch (e) {
+      enqueueSnackbar("Error adding to cart",{variant:"error"})
+    }
+    return true;
+  };
 
   return (
     <div>
@@ -220,6 +265,7 @@ const Products = () => {
           value={searchKey}
           onChange={(e) =>handleInputChange(e)}
           InputProps={{
+            className:"search",
             endAdornment: (
               <InputAdornment position="end">
                 <Search color="primary" />
@@ -247,6 +293,7 @@ const Products = () => {
         name="search"
       />
       <Grid container>
+      <Grid container item md={token?9:12}>
         <Grid item className="product-grid">
           <Box className="hero">
             <p className="hero-heading">
@@ -259,11 +306,11 @@ const Products = () => {
           <>Loading Products...</>
         ) : (<>
           {
-          products && products.length?(
-            <Grid container item mt={2} mb={2} ml={6} className="product-grid">
-               {products.map((ele) => (
-                <Grid item xs={12} sm={6} md={4} lg={3} key={ele._id}>
-                  <ProductCard product={ele} />
+          filteredProducts && filteredProducts.length?(
+            <Grid container item  spacing={2}>
+               {filteredProducts.map((ele) => (
+                <Grid item mb={2} sm={6} md={3}  key={ele._id}>
+                  <ProductCard product={ele} handleAddToCart={async()=>{await addToCart(token,items,products,ele._id,1,{preventDuplicate:true})}}/>
                 </Grid>
               ))}
             </Grid>
@@ -275,7 +322,15 @@ const Products = () => {
           )}
           </>)}
       </Grid>
-
+      {token?
+      (<Grid container item md={3} bgcolor="#E9F5E1">
+      <Cart
+      products={products}
+      items={items}
+      handleQuantity={addToCart}
+      />
+      </Grid>):null}
+      </Grid>
       <Footer />
     </div>
   );
