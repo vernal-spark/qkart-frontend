@@ -134,7 +134,7 @@ const AddNewAddressView = ({
 };
 
 const Checkout = () => {
-  const token = localStorage.getItem("token");
+  const [token,setToken] = useState(localStorage.getItem("token"));
   const history = useHistory();
   const { enqueueSnackbar } = useSnackbar();
   const [items, setItems] = useState([]);
@@ -478,7 +478,7 @@ const Checkout = () => {
   if(token){
   return (
     <>
-      <Header />
+      <Header setToken={setToken} />
       {token?
       (<Grid container>
         <Grid item xs={12} md={9}>
