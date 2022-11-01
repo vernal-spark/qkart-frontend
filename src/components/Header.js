@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import { createTheme} from '@mui/material/styles';
 import "./Header.css";
 
-const Header = ({ children, hasHiddenAuthButtons }) => {
+const Header = ({ children, hasHiddenAuthButtons,setToken }) => {
   let history=useHistory();
   
   
@@ -91,6 +91,7 @@ const Header = ({ children, hasHiddenAuthButtons }) => {
                <Button onClick={()=>{localStorage.removeItem("username")
                localStorage.removeItem("token")
                localStorage.removeItem("balance")
+               setToken();
                 history.push("/")
                 }}>
                  Logout

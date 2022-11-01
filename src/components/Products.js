@@ -8,7 +8,7 @@ import {
 import { Box } from "@mui/system";
 import axios from "axios";
 import { useSnackbar } from "notistack";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useHistory } from "react";
 import { config } from "../App";
 import Footer from "./Footer";
 import Header from "./Header";
@@ -43,7 +43,7 @@ const Products = () => {
   const [searchKey, setSearchKey] = useState("");
   const [debounceTimeout, setDebounceTimeout] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const token=localStorage.getItem('token')
+  const [token,setToken]=useState(localStorage.getItem('token'))
   const handleInputChange=(e)=>{
     setSearchKey(e.target.value);
   }
@@ -211,20 +211,26 @@ const Products = () => {
     setItems(cartDetails)
     console.log(cartDetails);
     }
-    })();
-
-    
+    })(); 
   }, []);
+
+
+
   const IsItemInCart=(items,productId)=>{
     return items.find((ele)=>
       ele.productId===productId
     )
   }
   
+
+
   const updateCartItems=(cartData,productsData)=>{
     const cartItems= generateCartItemsFrom(cartData,productsData);
     setItems(cartItems);
   }
+
+
+
   const addToCart = async (
     token,
     items,
@@ -255,9 +261,10 @@ const Products = () => {
     return true;
   };
 
+
   return (
     <div>
-      <Header>
+      <Header setToken={setToken}>
         {/* TODO: CRIO_TASK_MODULE_PRODUCTS - Display search bar in the header for Products page */}
         <TextField
           className="search-desktop"
