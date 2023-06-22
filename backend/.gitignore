@@ -2,4 +2,3 @@ node_modules
 node_modules/
 db/users.db
 yarn.lock
-.env

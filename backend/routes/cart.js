@@ -1,7 +1,7 @@
 var express = require("express");
 var router = express.Router();
 const stripe = require("stripe")(
-  process.env.STRIPE_KEY
+  'sk_test_51NLGtFSClWxc36p951AAEr8J0gn9E96tHk8rcL0NzGuf2Iu7QaZdvtk27hVt7M8yYZZpcBK0FWcjrgleSW161yhc003igZkfbs'
 );
 
 const { handleError, verifyAuth, getProduct } = require("../utils");
@@ -121,8 +121,8 @@ router.post("/checkout", verifyAuth, async (req, res) => {
     line_items: items,
     payment_method_types:['card'],
     mode: "payment",
-    success_url: `http://${process.env.DOMAIN}/thanks`,
-    cancel_url: `http://${process.env.DOMAIN}/checkout`,
+    success_url: 'https://qkart-frontend-harshit.netlify.app/thanks',
+    cancel_url: 'https://qkart-frontend-harshit.netlify.app/checkout',
   };
 
   // console.log("items:", stripe_object);
