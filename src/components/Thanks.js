@@ -5,14 +5,49 @@ import { useHistory } from "react-router-dom";
 import Footer from "./Footer";
 import Header from "./Header";
 import "./Thanks.css";
+import axios from 'axios'
+import {config} from '../App'
+import { useSnackbar } from "notistack";
 
 const Thanks = () => {
   const history = useHistory();
+  const {enqueueSnackbar}=useSnackbar()
 
   const routeToProducts = () => {
     history.push("/");
   };
-
+  const emptyCart=(token)=>{
+    try {
+      return axios
+        .post(
+          `${config.endpoint}/cart/thanks`,
+          {},
+          { headers: { authorization: `Bearer ${token}` } }
+        )
+        .then((response) => {
+          // enqueueSnackbar("Ordered palced successfully", {
+          //   variant: "success",
+          // });
+          return true;
+        });
+    } catch (e) {
+      if (e.response) {
+        enqueueSnackbar(e.response.data.message, { variant: "error" });
+      } else {
+        enqueueSnackbar(
+          "Could not place order. Check that the backend is running, reachable and returns valid JSON.",
+          {
+            variant: "error",
+          }
+        );
+      }
+      return false;
+    }
+  }
+  useEffect(()=>{
+    console.log(localStorage.getItem("token"))
+    emptyCart(localStorage.getItem("token"))
+  },[])
   useEffect(() => {
     const token = localStorage.getItem("token");
 
@@ -28,8 +63,8 @@ const Thanks = () => {
         <h2>Yay! It's ordered 😃</h2>
         <p>You will receive an invoice for your order shortly.</p>
         <p>Your order will arrive in 7 business days.</p>
-        <p id="balance-overline">Wallet Balance</p>
-        <p id="balance">${localStorage.getItem("balance")} Available</p>
+        {/* <p id="balance-overline">Wallet Balance</p>
+        <p id="balance">${localStorage.getItem("balance")} Available</p> */}
         <Button
           variant="contained"
           size="large"

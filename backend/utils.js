@@ -16,11 +16,14 @@ const getProduct = (productId) => {
 };
 
 const verifyAuth = (req, res, next) => {
+    // console.log(req)
     if (
         req.headers.authorization &&
         req.headers.authorization.split(' ').length > 1 &&
         req.headers.authorization.split(' ')[0] === 'Bearer'
     ) {
+        // console.log("1")
+        // console.log(req.headers.authorization)
         jwt.verify(
             req.headers.authorization.split(' ')[1],
             config.jwtSecret,
@@ -48,6 +51,7 @@ const verifyAuth = (req, res, next) => {
             }
         );
     } else {
+        console.log(req.headers.authorization)
         return res.status(401).json({
             success: false,
             message: 'Protected route, Oauth2 Bearer token not found'

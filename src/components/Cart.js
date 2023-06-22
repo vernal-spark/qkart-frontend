@@ -72,13 +72,12 @@ export const getTotalCartValue = (items = []) => {
   return total;
 };
 export const getTotalItems = (items = []) => {
-  let total=0;
-  items.forEach(ele=>{
-    total+=ele.qty;
-  })
+  let total = 0;
+  items.forEach((ele) => {
+    total += ele.qty;
+  });
   return total;
 };
-
 
 /**
  * Component to display the current quantity for a product and + and - buttons to update product quantity on cart
@@ -155,7 +154,12 @@ const Cart = ({ isReadOnly, products, items = [], handleQuantity }) => {
       <Box className="cart">
         {/* TODO: CRIO_TASK_MODULE_CART - Display view for each cart item with non-zero quantity */}
         {items.map((ele) => (
-          <Box key={ele._id} display="flex" alignItems="flex-start" padding="1rem">
+          <Box
+            key={ele._id}
+            display="flex"
+            alignItems="flex-start"
+            padding="1rem"
+          >
             <Box className="image-container">
               <img
                 // Add product image
@@ -244,44 +248,55 @@ const Cart = ({ isReadOnly, products, items = [], handleQuantity }) => {
           </Box>
         )}
       </Box>
-      {isReadOnly &&
-      <Box className="cart" display="flex" flexDirection="column" justifyContent="space-between"  >
-        <Typography variant="h5" alignSelf="center" component="h2">
-          Order Details
-        </Typography>
-        <Box p="1rem" display="flex" direction="row" justifyContent="space-between" sx={{p:2}}>
-          <Box>
-            Products
+      {isReadOnly && (
+        <Box
+          className="cart"
+          display="flex"
+          flexDirection="column"
+          justifyContent="space-between"
+        >
+          <Typography variant="h5" alignSelf="center" component="h2">
+            Order Details
+          </Typography>
+          <Box
+            p="1rem"
+            display="flex"
+            direction="row"
+            justifyContent="space-between"
+            sx={{ p: 2 }}
+          >
+            <Box>Products</Box>
+            <Box>{getTotalItems(items)}</Box>
           </Box>
-          <Box>
-            {getTotalItems(items)}
+          <Box
+            display="flex"
+            direction="row"
+            justifyContent="space-between"
+            sx={{ p: 2 }}
+          >
+            <Box>Subtotal</Box>
+            <Box>${getTotalCartValue(items)}</Box>
+          </Box>
+          <Box
+            display="flex"
+            direction="row"
+            justifyContent="space-between"
+            sx={{ p: 2 }}
+          >
+            <Box>Shipping</Box>
+            <Box>$0</Box>
+          </Box>
+          <Box
+            display="flex"
+            direction="row"
+            justifyContent="space-between"
+            sx={{ p: 2 }}
+          >
+            <Box>Total</Box>
+            <Box>${getTotalCartValue(items)}</Box>
           </Box>
         </Box>
-        <Box display="flex" direction="row" justifyContent="space-between"sx={{p:2}}>
-          <Box>
-            Subtotal
-          </Box>
-          <Box>
-            ${getTotalCartValue(items)}
-          </Box>
-        </Box>
-        <Box display="flex" direction="row" justifyContent="space-between"sx={{p:2}}>
-          <Box>
-            Shipping
-          </Box>
-          <Box>
-            $0
-          </Box>
-        </Box>
-        <Box display="flex" direction="row" justifyContent="space-between"sx={{p:2}}>
-          <Box>
-            Total
-          </Box>
-          <Box>
-            ${getTotalCartValue(items)}
-          </Box>
-        </Box>
-      </Box>}
+      )}
     </>
   );
 };

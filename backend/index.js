@@ -1,15 +1,18 @@
 const express = require('express');
 const cors = require('cors');
 const config = require('./config.json');
+require('dotenv').config()
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
+
 const authRouter = require('./routes/auth')
 const productRouter = require('./routes/product')
 const cartRouter = require('./routes/cart')
-const userRouter = require('./routes/user')
+const userRouter = require('./routes/user');
+// const { configDotenv } = require('dotenv');
 
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/products', productRouter);

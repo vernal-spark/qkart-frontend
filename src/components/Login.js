@@ -165,7 +165,7 @@ const Login = () => {
            }
           <p className="secondary-action">
             Don't have an account?{" "}
-             <Link className="link" to="/">
+             <Link className="link" to="/register">
               Register now
              </Link>
           </p>

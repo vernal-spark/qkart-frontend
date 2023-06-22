@@ -1,5 +1,9 @@
 var express = require("express");
 var router = express.Router();
+const stripe = require("stripe")(
+  process.env.STRIPE_KEY
+);
+
 const { handleError, verifyAuth, getProduct } = require("../utils");
 var { users, products } = require("../db");
 
@@ -99,21 +103,68 @@ router.post("/checkout", verifyAuth, async (req, res) => {
       .status(404)
       .json({ success: false, message: "Bad address specified" });
   }
+  const items = [];
+
+  for (const item of req.user.cart) {
+    const product = await getProduct(item.productId);
+    console.log(item);
+    items.push({
+      price_data: {
+        currency: "usd",
+        product_data: { name: product.name },
+        unit_amount: product.cost,
+      },
+      quantity: item.qty,
+    });
+  }
+  const stripe_object = {
+    line_items: items,
+    payment_method_types:['card'],
+    mode: "payment",
+    success_url: `http://${process.env.DOMAIN}/thanks`,
+    cancel_url: `http://${process.env.DOMAIN}/checkout`,
+  };
+
+  // console.log("items:", stripe_object);
+
+  const session = await stripe.checkout.sessions.create(stripe_object);
+
+  // console.log("sec:", process.env.STRIPE_KEY);
+  // console.log(session.url);
   req.user.balance -= total;
   console.log("Mock order placed");
   console.log("Cart", req.user.cart);
   console.log("Total cost", total);
   console.log("Address", req.user.addresses[addressIndex]);
   // Now clear cart
-  req.user.cart = [];
+  // req.user.cart = [];
   users.update({ _id: req.user._id }, req.user, {}, (err) => {
     if (err) {
       handleError(res, err);
     }
     return res.status(200).json({
+      url:session.url,
       success: true,
     });
   });
 });
+
+router.post("/thanks",verifyAuth,async(req,res)=>{
+  try{
+    // console.log(req.user.cart)
+    req.user.cart=[];
+    // console.log(req.user.cart)
+    users.update({ _id: req.user._id }, req.user, {}, (err) => {
+      if (err) {
+        handleError(res, err);
+      }
+      return res.status(200).json({
+        success: true,
+      });
+    });
+  }catch(e){
+    res.status(400).json({message:e.message})
+  }
+})
 
 module.exports = router;
